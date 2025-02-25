@@ -54,6 +54,31 @@ class Counter with ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Color get backgroundColor {
+    if (_age <= 33) {
+      return Colors.green;
+    } else if (_age <= 67) {
+      return Colors.yellow;
+    } else {
+      return Colors.red;
+    }
+  }
+
+ String get ageMessage {
+    if (_age <= 10) {
+      return "You're a kid";
+    } else if (_age <= 20) {
+      return "Teen years";
+    } else if (_age <= 33) {
+      return "Life is ramping up";
+    } else if (_age <= 50) {
+      return "In your prime";
+    } 
+     else {
+      return "You've lived a long full life";
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -77,23 +102,28 @@ class MyHomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Age Counter'),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Consumer<Counter>(
-              builder: (context, counter, child) => Text(
+    return Consumer<Counter>(
+      builder: (context, counter, child) => Scaffold(
+        backgroundColor: counter.backgroundColor, 
+        appBar: AppBar(
+          title: const Text('Age Counter'),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
                 'I am ${counter.age} years old',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
-            ),
-            const SizedBox(height: 20),
-            Consumer<Counter>(
-              builder: (context, counter, child) => Slider(
+               const SizedBox(height: 10),
+              Text(
+                counter.ageMessage,  // Display age-specific message
+                style: Theme.of(context).textTheme.titleMedium,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Slider(
                 value: counter.age.toDouble(),
                 min: 0,
                 max: 100,
@@ -102,31 +132,28 @@ class MyHomePage extends StatelessWidget {
                   counter.setAge(value);
                 },
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                var counter = context.read<Counter>();
-                counter.increment();
-              },
-              child: const Text("Increment"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                var counter = context.read<Counter>();
-                counter.decrement();
-              },
-              child: const Text("Decrement"),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: () {
+                  counter.increment();
+                },
+                child: const Text("Increment"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  counter.decrement();
+                },
+                child: const Text("Decrement"),
+              ),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          var counter = context.read<Counter>();
-          counter.increment();
-        },
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            counter.increment();
+          },
+          tooltip: 'Increment',
+          child: const Icon(Icons.add),
+        ),
       ),
     );
   }
