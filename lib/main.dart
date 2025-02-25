@@ -7,16 +7,7 @@ import 'package:window_size/window_size.dart';
 void main() {
   setupWindow();
   runApp(
-    // Provide the model to all widgets within the app. We're using
-    // ChangeNotifierProvider because that's a simple way to rebuild
-    // widgets when a model changes. We could also just use
-    // Provider, but then we would have to listen to Counter ourselves.
-    //
-    // Read Provider's docs to learn about all the available providers.
     ChangeNotifierProvider(
-      // Initialize the model in the builder. That way, Provider
-      // can own Counter's lifecycle, making sure to call `dispose`
-      // when not needed anymore.
       create: (context) => Counter(),
       child: const MyApp(),
     ),
@@ -42,16 +33,26 @@ void setupWindow() {
   }
 }
 
-/// Simplest possible model, with just one field.
-///
-/// [ChangeNotifier] is a class in `flutter:foundation`. [Counter] does
-/// _not_ depend on Provider.
 class Counter with ChangeNotifier {
-  int value = 0;
+  int _age = 0;
+
+  int get age => _age;
+
+  void setAge(double value) {
+    _age = value.toInt();
+    notifyListeners();
+  }
 
   void increment() {
-    value += 1;
+    _age += 1;
     notifyListeners();
+  }
+
+  void decrement() {
+    if (_age > 0) {
+      _age -= 1;
+      notifyListeners();
+    }
   }
 }
 
@@ -84,37 +85,43 @@ class MyHomePage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('You have pushed the button this many times:'),
-            // Consumer looks for an ancestor Provider widget
-            // and retrieves its model (Counter, in this case).
-            // Then it uses that model to build widgets, and will trigger
-            // rebuilds if the model is updated.
             Consumer<Counter>(
               builder: (context, counter, child) => Text(
-                '${counter.value}',
+                'I am ${counter.age} years old',
                 style: Theme.of(context).textTheme.headlineMedium,
               ),
+            ),
+            const SizedBox(height: 20),
+            Consumer<Counter>(
+              builder: (context, counter, child) => Slider(
+                value: counter.age.toDouble(),
+                min: 0,
+                max: 100,
+                divisions: 100,
+                onChanged: (value) {
+                  counter.setAge(value);
+                },
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                var counter = context.read<Counter>();
+                counter.increment();
+              },
+              child: const Text("Increment"),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                var counter = context.read<Counter>();
+                counter.decrement();
+              },
+              child: const Text("Decrement"),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // You can access your providers anywhere you have access
-          // to the context. One way is to use Provider.of<Counter>(context).
-         // The provider package also defines extension methods on the context
-          // itself. You can call context.watch<Counter>() in a build method
-          // of any widget to access the current state of Counter, and to ask
-          // Flutter to rebuild your widget anytime Counter changes.
-          //
-          // You can't use context.watch() outside build methods, because that
-          // often leads to subtle bugs. Instead, you should use
-          // context.read<Counter>(), which gets the current state
-          // but doesn't ask Flutter for future rebuilds.
-          //
-          // Since we're in a callback that will be called whenever the user
-          // taps the FloatingActionButton, we are not in the build method here.
-          // We should use context.read().
           var counter = context.read<Counter>();
           counter.increment();
         },
